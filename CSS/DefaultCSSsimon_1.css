@@ -1,0 +1,187 @@
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance:textfield;
+}
+/*Hauptteil*/
+body {
+    background-color: #404545;
+    overflow: hidden;
+    margin: 0px;
+    padding:0px;
+    z-index: 0;
+}
+ul {
+    background-color: #1B1D1F;
+    border-bottom: solid 1px #86B900;
+    width: 100vw;
+    height: 10vh;
+    z-index: 10;
+    text-align: center;
+    margin: 0px;
+    padding-top: 10px;
+    padding-left: 0;
+}
+main{
+    background-color: #404545;
+    width: 100vw;
+    height: 64.8vh;
+    z-index: 0;
+    display: flex;
+    flex-direction: row;
+    flex-flow: wrap;
+    justify-content: space-around;
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-items: flex-start;
+    margin-top: 10vh;
+}
+footer{
+    background-color: #1B1D1F;
+    border-top: solid 1px #86B900;
+    width: 100vw;
+    height: 12vh;
+    bottom: 0;
+    position: fixed;
+    z-index: 10;
+}
+nav{
+    background-color: #1B1D1F;
+    border-top: solid 1px #86B900;
+    border-bottom: solid 1px #86B900;
+    width: 100vw;
+    height: 5vh;
+    top: 15vh;
+    position: fixed;
+    z-index: 10;
+}
+/*Hauptteil schluss*/
+.titlemain{
+    font-family: "Century Gothic";
+    font-size: 6vh ;
+    color: #86B900;
+    margin-top: 0.2em;
+}
+.copyright{
+    text-align: center;
+    font-family: "Century Gothic";
+    font-size: 2vh;
+    color: #404545;
+}
+.buttonnavigation{
+    color: #86B900;
+    border: unset;
+    background-color: unset;
+    font-family: "Century Gothic";
+    font-size: 3vh;
+}
+.nav{
+    display: flex;
+    justify-content: space-evenly;
+    margin: 0px;
+    padding:0px;
+}
+.divchart{
+    background-color: #86B900;
+    border-radius:10px;
+    height: 350px;
+    width: 350px;
+    border: solid 1px #1B1D1F;
+    margin: 10px;
+    z-index: 9;
+}
+.divcontent{
+    background-color: #86B900;
+    border-radius:10px;
+    text-align: center;
+    border: solid 1px #1B1D1F;
+    margin: 10px;
+    z-index: 9;
+}
+#login{
+    height: 350px;
+    width: 350px;
+}
+#main{
+    height: 500px;
+    width: 350px;
+}
+#usercontrol{
+    height: 600px;
+    width: 600px;
+}
+#long{
+    height: 240px;
+    width: 500px;
+}
+#timecontrol{
+     height: 600px;
+     width: 900px;
+ }
+#projectcontrol{
+    height: 500px;
+    width: 500px;
+   align-items: center;
+}
+.titelcontetn{
+    font-family: "Century Gothic";
+    font-size: 3vh;
+    color: #404545;
+}
+.buttoncontetn{
+    font-family: "Century Gothic";
+    font-size: 2vh;
+    color: #86B900;
+    border: 1px #1B1D1F;
+    border-radius: 10px;
+    background-color: #404545;
+    text-align: center;
+    width: 200px;
+}
+.inputcontetn{
+    font-family: "Century Gothic";
+    font-size: 2vh;
+    color: #86B900;
+    border-radius: 10px;
+    border: unset;
+    background-color: #404545;
+    text-align: center;
+    width: 200px;
+}
+.error{
+    font-family: "Century Gothic";
+    font-size: 2vh;
+    color: #FF0000;
+    margin-top: 80px;
+}
+table {
+    /*text-align: center;*/
+    font-family: "Century Gothic";
+    font-size: 15px;
+    color: #404545;
+    border-collapse: collapse;
+    border-radius: 3px;
+    width: 400px;
+}
+#tablehover tr:hover {
+    background-color:#404545;
+    color: #86B900;
+    border-radius: 5px;
+}
+#tablesstrich th, td {
+    border-bottom: 1px solid #404545;
+    border-top: 1px solid #404545;
+}
+.buttontime{
+    font-size: 15px;
+    font-family: "Century Gothic";
+    color: #86B900;
+    border: 1px #1B1D1F;
+    border-radius: 10px;
+    background-color: #404545;
+    text-align: center;
+        width: 150px;
+}
