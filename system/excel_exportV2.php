@@ -28,7 +28,6 @@ $savetime = 0;
 $name = 'Simon';
 #endregion
 
-
 #region/// ----- Functionen ----- ///
 function AbfrageAll($monat, $mysqli)
 {
@@ -65,7 +64,7 @@ function arbeitszeit($startzeit, $endzeit)
 function soll($soll)
 {
     $start_time = explode(":", $soll);
-    $d = ($start_time[1]+$start_time[0]);
+    $d = ($start_time[0] + ($start_time[1]));
     return $d;
 }
 function UserData($name, $mysqli){
@@ -91,7 +90,12 @@ for ($a = 0; $a < 42; $a ++){
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('H' . $row . '', '=SUM(D' . $row . ':G' . $row . ')');
 
    if($startdate->format('Y-m-d') == $rows[$z]['datum']) {
-
+       echo 'Test <br/>';
+       echo $startdate->format('Y-m-d').'<br/>';
+       echo $rows[$z]['datum'].'<br/>';
+       echo $savedata;
+       echo '<br/>';
+       echo '<br/>';
        $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $total);
 
@@ -100,17 +104,32 @@ for ($a = 0; $a < 42; $a ++){
        $row++;
        $z ++;
    }
-   elseif ($startdate->format('Y-m-d') == $savedata){
+   elseif ($rows[$z]['datum'] == $savedata){
+       echo 'Ich bin da <br/>';
+       echo $startdate->format('Y-m-d').'<br/>';
+       echo $rows[$z]['datum'].'<br/>';
+       echo $savedata;
+       echo '<br/>';
+       echo '<br/>';
        $rowT = $row;
        $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
        $savetime = $total + $savetime;
        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $rowT -= 1 . '', $savetime);
        $savedata = $rows[$z]['datum'];
        $z ++;
+       $startdate->modify('-1 day');
     }
    else{
-
+       echo 'ich bin tot <br/>';
+       echo $startdate->format('Y-m-d').'<br/>';
+       echo $rows[$z]['datum'].'<br/>';
+       echo $savedata;
+       echo '<br/>';
+       echo '<br/>';
        $row++;
+       $savedata = 0;
+       $savetime = 0;
+
    }
     if($startdate->format('N') == 7)
     {
@@ -120,8 +139,8 @@ for ($a = 0; $a < 42; $a ++){
         $spreadsheet->setActiveSheetIndex(0)->setCellValue('I'.$row.'', '=sum(H'.($summrow -= 1 ) .':H'.($summrow -= 6) .')');
         $row ++;
     }
-    $startdate->modify('+1 day');
     $count = strtotime("+1 day", $count);
+    $startdate->modify('+1 day');
 }
 #endregion
 
