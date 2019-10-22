@@ -18,13 +18,15 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 #region/// ----- Variablen ----- ///
 $monate = array('01' => 'Januar', '02' => 'Februar', '03' => 'März', '04' => 'April', '05' => 'Mai', '06' => 'Juni', '07' => 'Juli', '08' => 'August', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Dezember');
 $woche = array('', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag');
+
 $monat = '10';
+
 $jahr = 2019;
 $datum = '2019-'.$monat.'-01';
 $row = 9;
 $z = 0;
-$savedata = 0;
-$savetime = 0;
+$savedata = 'g';
+$savetime = 'g';
 $name = 'Simon';
 #endregion
 
@@ -44,10 +46,16 @@ function AbfrageAll($monat, $mysqli)
 function StartDatum($rows)
 {
     $startdate = new DateTime($rows[0]['datum']);
-    $d = $startdate->format('N');
-    $a = $d - 1;
-    $startdate->modify('-' . $a . ' day');
-    return $startdate;
+    $startdate->modify('first day of this month');
+    $startdate->modify('last monday');
+
+    $enddate = new DateTime($rows[0]['datum']);
+    $enddate->modify('last day of this month');
+    $enddate->modify('next monday');
+
+    $interval = new DateInterval('P1D');
+    $daterange = new DatePeriod($startdate, $interval, $enddate);
+    return $daterange;
 }
 function arbeitszeit($startzeit, $endzeit)
 {
@@ -73,74 +81,49 @@ function UserData($name, $mysqli){
 }
 
 $rows = AbfrageAll($monat,$mysqli);
-$startdate = StartDatum($rows);
 $userdaten = UserData($name, $mysqli);
 $soll = soll($userdaten['soll']);
-$count  = strtotime($datum);
+$daterange = StartDatum($rows);
 #endregion
 
 #region/// ----- Code ----- ///
 $spreadsheet = new Spreadsheet();
 $worksheet = $spreadsheet->getActiveSheet();
 
-for ($a = 0; $a < 42; $a ++){
-
-    $spreadsheet->setActiveSheetIndex(0)->setCellValue('A' . $row . '', $woche[$startdate->format('N')]);
-    $spreadsheet->setActiveSheetIndex(0)->setCellValue('C' . $row . '', $startdate->format('Y-m-d'));
+foreach($daterange as $date) {
+    $spreadsheet->setActiveSheetIndex(0)->setCellValue('A' . $row . '', $woche[$date->format('N')]);
+    $spreadsheet->setActiveSheetIndex(0)->setCellValue('C' . $row . '', $date->format('Y-m-d'));
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('H' . $row . '', '=SUM(D' . $row . ':G' . $row . ')');
 
-   if($startdate->format('Y-m-d') == $rows[$z]['datum']) {
-       echo 'Test <br/>';
-       echo $startdate->format('Y-m-d').'<br/>';
-       echo $rows[$z]['datum'].'<br/>';
-       echo $savedata;
-       echo '<br/>';
-       echo '<br/>';
-       $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
-       $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $total);
-
-       $savetime = $total;                                                                     //gespeicheres zeugs auf 0 setzen
-       $savedata = $rows[$z]['datum'];
-       $row++;
-       $z ++;
-   }
-   elseif ($rows[$z]['datum'] == $savedata){
-       echo 'Ich bin da <br/>';
-       echo $startdate->format('Y-m-d').'<br/>';
-       echo $rows[$z]['datum'].'<br/>';
-       echo $savedata;
-       echo '<br/>';
-       echo '<br/>';
-       $rowT = $row;
-       $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
-       $savetime = $total + $savetime;
-       $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $rowT -= 1 . '', $savetime);
-       $savedata = $rows[$z]['datum'];
-       $z ++;
-       $startdate->modify('-1 day');
+    if ($date->format('Y-m-d') == $rows[$z]['datum']) {
+        $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $total);
+        $savetime = $total;
+        $savedata = $rows[$z]['datum'];
+        $row++;
+        $z++;
+    } elseif ($rows[$z]['datum'] == $savedata) {
+        $rowT = $row;
+        $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
+        $savetime = $total + $savetime;
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $rowT -= 1 . '', $savetime);
+        $savedata = $rows[$z]['datum'];
+        $z++;
+        $date->modify('-1 day');
+    } else {
+        $row++;
+        $savedata = 'h';
+        $savetime = 'h';
     }
-   else{
-       echo 'ich bin tot <br/>';
-       echo $startdate->format('Y-m-d').'<br/>';
-       echo $rows[$z]['datum'].'<br/>';
-       echo $savedata;
-       echo '<br/>';
-       echo '<br/>';
-       $row++;
-       $savedata = 0;
-       $savetime = 0;
 
-   }
-    if($startdate->format('N') == 7)
-    {
+    if ($date->format('N') == 7) {
         $summrow = $row;
-        $spreadsheet->getActiveSheet()->getStyle('A'.$row.':J'.$row.'')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('I'.$row)->getFont()->setSize(13);
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('I'.$row.'', '=sum(H'.($summrow -= 1 ) .':H'.($summrow -= 6) .')');
-        $row ++;
+        $spreadsheet->getActiveSheet()->getStyle('A' . $row . ':J' . $row . '')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $row . ':I' . $row . '')->getFont()->setSize(13);
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('I' . $row . '', '=sum(H' . ($summrow -= 1) . ':H' . ($summrow -= 6) . ')');
+        $row++;
     }
-    $count = strtotime("+1 day", $count);
-    $startdate->modify('+1 day');
+    $date->modify('+1 day');
 }
 #endregion
 
@@ -158,34 +141,34 @@ $spreadsheet->getActiveSheet()->getStyle('H6')->getFont()->setSize(9);
 /// ----- Style Titel ----- ///
 $spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->setSize(22);
 $spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->getColor()->setARGB('a3182e');
-// Rot
 
 /// ----- Style Border ----- ///
 $spreadsheet->getActiveSheet()->getStyle('A1:J1')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
 $spreadsheet->getActiveSheet()->getStyle('A4:J4')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 $spreadsheet->getActiveSheet()->getStyle('A5:J5')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 $spreadsheet->getActiveSheet()->getStyle('A6:J6')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-$spreadsheet->getActiveSheet()->getStyle('A57:J57')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-$spreadsheet->getActiveSheet()->getStyle('A8:J58')->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+$spreadsheet->getActiveSheet()->getStyle('A8:J'.$row.'')->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-
-$spreadsheet->getActiveSheet()->getStyle('A8:J56')->getBorders()->getVertical()->getColor()->setARGB('FFFFFF');  // Weiss
+$spreadsheet->getActiveSheet()->getStyle('A8:J'.$row.'')->getBorders()->getVertical()->getColor()->setARGB('FFFFFF');  // Weiss
 $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
-$spreadsheet->getActiveSheet()->getStyle('A57:J68')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
-$spreadsheet->getActiveSheet()->getStyle('A57:J57')->getBorders()->getBottom()->getColor()->setARGB('FFFFFF');    // Weiss
 
-$spreadsheet->getActiveSheet()->getStyle('A57:J58')->getBorders()->getAllBorders()->getColor()->setARGB('FFFFFF'); // Weiss
-$spreadsheet->getActiveSheet()->getStyle('A57:J58')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
 /// ----- Style BG Color----- ///
 $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
-$spreadsheet->getActiveSheet()->getStyle('A56:J58')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
-for ($a = 9; $a <= 56; $a += 2){
+
+$a = 9;
+for ($a = 9; $a < $row; $a ++){
+    if($a % 2 !== 0){
     $spreadsheet->getActiveSheet()->getStyle('A'.$a.':J'.$a.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('E5F0FC'); // Hell
-}
-for ($a = 10; $a <= 56; $a += 2){
+    }
+    else{
     $spreadsheet->getActiveSheet()->getStyle('A'.$a.':J'.$a.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('AED2FB'); // Dunkel
+    }
+    $date->modify('+1 day');
 }
 
+$spreadsheet->getActiveSheet()->getStyle('A'.$row.':J'.$row.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
+
+$spreadsheet->getActiveSheet()->getStyle('A'.$row.':J'.$row.'')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
 /// ----- Text ----- ///
 $spreadsheet->setActiveSheetIndex(0)  /// Kopfzeile
     ->setCellValue('A1', 'REAM AG / reamis ag')
@@ -198,12 +181,13 @@ $spreadsheet->setActiveSheetIndex(0)  /// Kopfzeile
     ->setCellValue('H6', $monate[$monat].' '.$jahr)
     ->setCellValue('E5', 'Arbeitspensum pro Woche')
     ->setCellValue('H5', $soll)
-    ->setCellValue('G57', 'Soll')
-    ->setCellValue('H57', '184.6')
-    ->setCellValue('I57', 'Stunden')
-    ->setCellValue('J58', '=(J57-H57)')
-    ->setCellValue('J57', '=sum(I8:I56)');
 
+    ->setCellValue('A'.$row.'', 'Soll')
+    ->setCellValue('B'.$row.'', '184.6')
+    ->setCellValue('E'.$row.'', 'Stunden')
+    ->setCellValue('F'.$row.'', '=(J'.$row.'-B'.$row.')')           //überstunden
+    ->setCellValue('J'.$row.'', '=sum(I8:I'.$row.')')
+    ->setCellValue('I'.$row.'', 'Total Monat');
 
 $spreadsheet->setActiveSheetIndex(0)  /// Tabellonkopf
     ->setCellValue('A8', 'Tag')
@@ -215,8 +199,7 @@ $spreadsheet->setActiveSheetIndex(0)  /// Tabellonkopf
     ->setCellValue('G8', 'Ferien')
     ->setCellValue('H8', 'Total Tag')
     ->setCellValue('I8', 'Total Woche')
-    ->setCellValue('J8', 'Total Monat')
-    ->setCellValue('I58', 'Total Monat');
+    ->setCellValue('J8', 'Total Monat');
 #endregion
 
 #region/// ----- Save ----- ///
