@@ -266,9 +266,10 @@ $spreadsheet->getActiveSheet()->getStyle('A8:J44')->getBorders()->getVertical()-
 $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
 $spreadsheet->getActiveSheet()->getStyle('A45:J45')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
 
-    $spreadsheet->getActiveSheet()->getStyle('I45:J47')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN); // weiss
-    $spreadsheet->getActiveSheet()->getStyle('I45:J47')->getBorders()->getAllBorders()->getColor()->setARGB('FFFFFF');
-    $spreadsheet->getActiveSheet()->getStyle('I45:J47')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
+$spreadsheet->getActiveSheet()->getStyle('I45:J47')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN); // weiss
+$spreadsheet->getActiveSheet()->getStyle('I45:J47')->getBorders()->getAllBorders()->getColor()->setARGB('FFFFFF');
+$spreadsheet->getActiveSheet()->getStyle('I45:J47')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
+
 /// ----- Style BG Color----- ///
 $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
 $spreadsheet->getActiveSheet()->getStyle('I45:J47')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
