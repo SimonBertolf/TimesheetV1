@@ -15,39 +15,22 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 #endregion
 
-
-if (isset($_POST['exportexport'])){
-
-
 #region/// ----- Variablen ----- ///
 $monate = array('01' => 'Januar', '02' => 'Februar', '03' => 'März', '04' => 'April', '05' => 'Mai', '06' => 'Juni', '07' => 'Juli', '08' => 'August', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Dezember');
 $woche = array('', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag');
-$monat = $_POST['monat'];
+$monat = '10';
 $jahr = 2019;
-$datum = $jahr.'-'.$monat.'-01';
-
-$z = 0;
+$datum = '2019-'.$monat.'-01';
+$row = 9;
 $savedata = 'g';
 $savetime = 0;
-$name = $_SESSION['vorname'];
+$name = 'Simon';
 #endregion
 
 #region/// ----- Functionen ----- ///
-function AbfrageAll($monat, $mysqli,$name)
+function AbfrageAll($monat, $mysqli)
 {
-    $comm = ('SELECT * FROM zeit LEFT JOIN user ON zeit.userId = user.userId LEFT JOIN projekt ON zeit.projektId = projekt.projektId  WHERE user.vorname = "'.$name.'" and datum LIKE "%-' . $monat . '-%"  AND NOT projekt.projektname = "Feiertage" AND NOT projekt.projektname = "Ferien" AND NOT projekt.projektname = "Krankheit" ORDER BY datum ');
-    $rows = array();
-
-    $query = $mysqli->query($comm);
-
-    while ($res = $query->fetch_assoc()) {
-        $rows[] = $res;
-    }
-    return $rows;
-}
-function AbfrageProjekt($monat, $mysqli,$name,$projekte)
-{
-    $comm = ('SELECT * FROM zeit LEFT JOIN user ON zeit.userId = user.userId LEFT JOIN projekt ON zeit.projektId = projekt.projektId  WHERE user.vorname = "'.$name.'" and datum LIKE "%-' . $monat . '-%"  AND projekt.projektname = "'.$projekte.'"  ORDER BY datum ');
+    $comm = ('SELECT * FROM zeit LEFT JOIN user ON zeit.userId = user.userId LEFT JOIN projekt ON zeit.projektId = projekt.projektId  WHERE user.vorname = "Simon" and datum LIKE "%-' . $monat . '-%"  AND NOT projekt.projektname = "Feiertage" AND NOT projekt.projektname = "Ferien" AND NOT projekt.projektname = "Krankheit" ORDER BY datum ');
     $rows = array();
 
     $query = $mysqli->query($comm);
@@ -93,42 +76,45 @@ function UserData($name, $mysqli){
          $Userdaten = $mysqli->query('SELECT * FROM user WHERE vorname = "'.$name.'"')->fetch_assoc();
          return $Userdaten;
 }
-function Arbeitspensum($soll,$datum,$monat){
+function AbfrageProjekte($monat, $mysqli,$projekt)
+{
+    $comm = ('SELECT * FROM zeit LEFT JOIN user ON zeit.userId = user.userId LEFT JOIN projekt ON zeit.projektId = projekt.projektId  WHERE user.vorname = "Simon" and datum LIKE "%-' . $monat . '-%"  AND projekt.projektname = "'.$projekt.'" ORDER BY datum ');
+    $rows = array();
 
-    $solltag = ($soll / 5);
-    $totalsoll = 0;
-    $df= new DateTime($datum);
+    $query = $mysqli->query($comm);
 
-    while ($df->format('m') == $monat) {
-        if (($df->format('N') >= 1) && ($df->format('N') <= 5)) {
-            $totalsoll += $solltag;
-        }
-        $df->modify('+1 day');
+    while ($res = $query->fetch_assoc()) {
+        $rows[] = $res;
     }
-    return $totalsoll;
+    return $rows;
 }
-function zählZeit ($rows){
-    $startdate = new DateTime($rows[0]['datum']);
-    $startdate->modify('first day of this month');
-    $startdate->modify('last sunday');
-    return $startdate;
-}
+
+$rows = AbfrageAll($monat,$mysqli);
+$z = 0;
+$rowsFerien = AbfrageProjekte($monat,$mysqli,'Ferien');
+$zFerien = 0;
+$rowsFeiertage = AbfrageProjekte($monat,$mysqli,'Feiertage');
+$zFeiertage = 0;
+$rowsKrankheit = AbfrageProjekte($monat,$mysqli,'Krankheit');
+$zKrankheit = 0;
 
 $userdaten = UserData($name, $mysqli);
 $soll = soll($userdaten['soll']);
 $daterange = StartDatum($rows);
-$totalsoll = Arbeitspensum($soll,$datum,$monat);
-$startdate = zählZeit($rows);
-$startdateferien = zählZeit($rows);
 #endregion
 
 $spreadsheet = new Spreadsheet();
 $worksheet = $spreadsheet->getActiveSheet();
 
-#region/// ----- Code alle  ----- ///
-    $row = 9;
-$rows = AbfrageAll($monat,$mysqli,$name);
+#region/// ----- Code Alle ----- ///
+
+$startdate = new DateTime($rows[0]['datum']);
+$startdate->modify('first day of this month');
+$startdate->modify('last sunday');
+
 foreach($daterange  as $date) {
+
+
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('A' . $row . '', $woche[$date->format('N')]);
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('C' . $row . '', $date->format('Y-m-d'));
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('H' . $row . '', '=SUM(D' . $row . ':G' . $row . ')');
@@ -139,6 +125,28 @@ foreach($daterange  as $date) {
         $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $savetime);
         $z++;
     }
+
+    while ($date->format('Y-m-d') == $rowsFerien[$zFerien]['datum']) {
+        $total = arbeitszeit($rowsFerien[$zFerien]['start'], $rowsFerien[$zFerien]['stop']);
+        $savetime += $total;
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('G' . $row . '', $savetime);
+        $zFerien++;
+    }
+
+    while ($date->format('Y-m-d') == $rowsFeiertage[$zFeiertage]['datum']) {
+        $total = arbeitszeit($rowsFeiertage[$zFeiertage]['start'], $rowsFeiertage[$zFeiertage]['stop']);
+        $savetime += $total;
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('G' . $row . '', $savetime);
+        $zFeiertage++;
+    }
+
+    while ($date->format('Y-m-d') == $rowsKrankheit[$zKrankheit]['datum']) {
+        $total = arbeitszeit($rowsKrankheit[$zKrankheit]['start'], $rowsKrankheit[$zKrankheit]['stop']);
+        $savetime += $total;
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('G' . $row . '', $savetime);
+        $zKrankheit++;
+    }
+
     if ($date->format('N') == 7) {
         $row++;
         $summrow = $row;
@@ -150,69 +158,8 @@ foreach($daterange  as $date) {
     $savetime = 'h';
         $row++;
 }
+
 #endregion
-
-
-#region/// ----- Code ferien  ----- ///
-    $ferien = 'Ferien';
-    $rowferin = 9;
-$rowsFerien = AbfrageProjekt($monat,$mysqli,$name,$ferien);
-echo $rowsFerien[$z]['datum'];
-foreach($daterange  as $date) {
-
-    while ($date->format('Y-m-d') == $rowsFerien[$z]['datum']) {
-        $total = arbeitszeit($rowsFerien[$z]['start'], $rowsFerien[$z]['stop']);
-        $savetime += $total;
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('G' . $rowferin . '', $savetime);
-        $z++;
-    }
-    $savedata = 'h';
-    $savetime = 'h';
-    $rowferin++;
-}
-#endregion
-
-
-#region/// ----- Code Feiertage  ----- ///
-    $feiertage = 'Feiertage';
-    $rowfeiertage = 9;
-$rowsFeiertage = AbfrageProjekt($monat,$mysqli,$name,$feiertage);
-echo $rowsFeiertage[$z]['datum'];
-foreach($daterange  as $date) {
-
-    while ($date->format('Y-m-d') == $rowsFeiertage[$z]['datum']) {
-        $total = arbeitszeit($rowsFeiertage[$z]['start'], $rowsFeiertage[$z]['stop']);
-        $savetime += $total;
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('E' . $rowfeiertage . '', $savetime);
-        $z++;
-    }
-    $savedata = 'h';
-    $savetime = 'h';
-    $rowfeiertage++;
-}
-#endregion
-
-
-
-#region/// ----- Code Krankheit  ----- ///
-    $krankheit = 'Krankheit';
-$rowkrankheit = 9;
-$rowsKrankheit = AbfrageProjekt($monat,$mysqli,$name,$krankheit);
-echo $rowsKrankheit[$z]['datum'];
-foreach($daterange  as $date) {
-
-    while ($date->format('Y-m-d') == $rowsKrankheit[$z]['datum']) {
-        $total = arbeitszeit($rowsKrankheit[$z]['start'], $rowsKrankheit[$z]['stop']);
-        $savetime += $total;
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('F' . $rowkrankheit . '', $savetime);
-        $z++;
-    }
-    $savedata = 'h';
-    $savetime = 'h';
-    $rowkrankheit++;
-}
-#endregion
-
 
 #region/// ----- Styles Default----- ///
 /// ----- Styles Default----- ///
@@ -268,7 +215,7 @@ $spreadsheet->setActiveSheetIndex(0)  /// Kopfzeile
     ->setCellValue('H5', $soll)
 
     ->setCellValue('A'.$row.'', 'Soll')
-    ->setCellValue('B'.$row.'', $totalsoll)
+    ->setCellValue('B'.$row.'', '184.6')
     ->setCellValue('E'.$row.'', 'Stunden')
     ->setCellValue('F'.$row.'', '=(J'.$row.'-B'.$row.')')           //überstunden
     ->setCellValue('J'.$row.'', '=sum(I8:I'.$row.')')
@@ -294,5 +241,4 @@ $writer->setIncludeCharts(true);
 $callStartTime = microtime(true);
 $writer->save($filename);
 #endregion
-
 }
