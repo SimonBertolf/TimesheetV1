@@ -18,15 +18,13 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 #region/// ----- Variablen ----- ///
 $monate = array('01' => 'Januar', '02' => 'Februar', '03' => 'März', '04' => 'April', '05' => 'Mai', '06' => 'Juni', '07' => 'Juli', '08' => 'August', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Dezember');
 $woche = array('', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag');
-
 $monat = '10';
-
 $jahr = 2019;
 $datum = '2019-'.$monat.'-01';
 $row = 9;
 $z = 0;
 $savedata = 'g';
-$savetime = 'g';
+$savetime = 0;
 $name = 'Simon';
 #endregion
 
@@ -90,40 +88,36 @@ $daterange = StartDatum($rows);
 $spreadsheet = new Spreadsheet();
 $worksheet = $spreadsheet->getActiveSheet();
 
-foreach($daterange as $date) {
+$startdate = new DateTime($rows[0]['datum']);
+$startdate->modify('first day of this month');
+$startdate->modify('last sunday');
+
+foreach($daterange  as $date) {
+
+    echo $date->format('Y-m-d-D');
+
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('A' . $row . '', $woche[$date->format('N')]);
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('C' . $row . '', $date->format('Y-m-d'));
     $spreadsheet->setActiveSheetIndex(0)->setCellValue('H' . $row . '', '=SUM(D' . $row . ':G' . $row . ')');
 
-    if ($date->format('Y-m-d') == $rows[$z]['datum']) {
+    while ($date->format('Y-m-d') == $rows[$z]['datum']) {
+        echo $date->format('Y-m-d').'normal<br/>';
         $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $total);
-        $savetime = $total;
-        $savedata = $rows[$z]['datum'];
-        $row++;
+        $savetime += $total;
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $row . '', $savetime);
         $z++;
-    } elseif ($rows[$z]['datum'] == $savedata) {
-        $rowT = $row;
-        $total = arbeitszeit($rows[$z]['start'], $rows[$z]['stop']);
-        $savetime = $total + $savetime;
-        $spreadsheet->setActiveSheetIndex(0)->setCellValue('D' . $rowT -= 1 . '', $savetime);
-        $savedata = $rows[$z]['datum'];
-        $z++;
-        $date->modify('-1 day');
-    } else {
-        $row++;
-        $savedata = 'h';
-        $savetime = 'h';
     }
-
     if ($date->format('N') == 7) {
+        $row++;
         $summrow = $row;
         $spreadsheet->getActiveSheet()->getStyle('A' . $row . ':J' . $row . '')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('A' . $row . ':I' . $row . '')->getFont()->setSize(13);
         $spreadsheet->setActiveSheetIndex(0)->setCellValue('I' . $row . '', '=sum(H' . ($summrow -= 1) . ':H' . ($summrow -= 6) . ')');
-        $row++;
     }
-    $date->modify('+1 day');
+    echo $date->format('Y-m-d').'nichts<br/>';
+    $savedata = 'h';
+    $savetime = 'h';
+        $row++;
 }
 #endregion
 
@@ -133,6 +127,7 @@ $spreadsheet->getDefaultStyle()->getFont()->setName('Arial')->setSize(12);
 $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(11);
 $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(11);
 $spreadsheet->getActiveSheet()->getColumnDimension('I')->setWidth(11);
+
 $spreadsheet->getActiveSheet()->getStyle('A6')->getFont()->setSize(11);
 $spreadsheet->getActiveSheet()->getStyle('C6')->getFont()->setSize(11);
 $spreadsheet->getActiveSheet()->getStyle('J6')->getFont()->setSize(10);
@@ -154,7 +149,6 @@ $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFont()->getColor()->setARG
 
 /// ----- Style BG Color----- ///
 $spreadsheet->getActiveSheet()->getStyle('A8:J8')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
-
 $a = 9;
 for ($a = 9; $a < $row; $a ++){
     if($a % 2 !== 0){
@@ -163,9 +157,7 @@ for ($a = 9; $a < $row; $a ++){
     else{
     $spreadsheet->getActiveSheet()->getStyle('A'.$a.':J'.$a.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('AED2FB'); // Dunkel
     }
-    $date->modify('+1 day');
 }
-
 $spreadsheet->getActiveSheet()->getStyle('A'.$row.':J'.$row.'')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('615351'); // Braun hell
 
 $spreadsheet->getActiveSheet()->getStyle('A'.$row.':J'.$row.'')->getFont()->getColor()->setARGB('FFFFFF');    // Weiss
@@ -203,7 +195,7 @@ $spreadsheet->setActiveSheetIndex(0)  /// Tabellonkopf
 #endregion
 
 #region/// ----- Save ----- ///
-$filename = 'Export.Xlsx';
+$filename = 'Export '.$monat.'-'.$jahr.'.Xlsx';
 $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 $writer->setIncludeCharts(true);
 $callStartTime = microtime(true);
