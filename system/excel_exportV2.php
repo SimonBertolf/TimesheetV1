@@ -15,16 +15,23 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 #endregion
 
+if (isset($_POST['exportexport'])){
+
 #region/// ----- Variablen ----- ///
 $monate = array('01' => 'Januar', '02' => 'Februar', '03' => 'März', '04' => 'April', '05' => 'Mai', '06' => 'Juni', '07' => 'Juli', '08' => 'August', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Dezember');
 $woche = array('', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag');
-$monat = '10';
+//    $monat = '10';
+//    $name = 'Simon';
+
+    $monat = $_POST['monat'];
+    $name = $_SESSION['vorname'];
+
+
 $jahr = 2019;
 $datum = '2019-'.$monat.'-01';
 $row = 9;
 $savedata = 'g';
 $savetime = 0;
-$name = 'Simon';
 #endregion
 
 #region/// ----- Functionen ----- ///
