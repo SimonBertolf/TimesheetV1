@@ -1,22 +1,22 @@
 <?php
 session_start();
 require_once "../system/main.php";
-require_once "../system/excel_exportV1.php";
+require_once "../system/excel_exportV2.php";
 
-if (file_exists('ExcelExport'.$monat.'.Xlsx') && isset($_POST['exportexport'])) {
+if (file_exists('Export '.$monat.'-'.$jahr.'.Xlsx') && isset($_POST['exportexport'])) {
 
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename='.basename('ExcelExport'.$monat.'.Xlsx'));
+    header('Content-Disposition: attachment; filename='.basename('Export '.$monat.'-'.$jahr.'.Xlsx'));
     header('Content-Transfer-Encoding: binary');
     header('Expires: 0');
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Pragma: public');
-    header('Content-Length: ' . filesize('ExcelExport'.$monat.'.Xlsx'));
+    header('Content-Length: ' . filesize('Export '.$monat.'-'.$jahr.'.Xlsx'));
 
     ob_clean();
     flush();
-    readfile('ExcelExport'.$monat.'.Xlsx');
+    readfile('Export '.$monat.'-'.$jahr.'.Xlsx');
     exit;
 }
 
