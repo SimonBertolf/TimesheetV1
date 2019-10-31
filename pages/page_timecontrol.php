@@ -84,10 +84,10 @@ require_once "../system/timecontrol.php";
                     <tr>
                         <td><input type="date" name="datum" required style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>
 <!--                        <td><input type="number" name="kalenderwoche" style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>-->
-                        <td><input type="time" name="start" required style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>
-                        <td><input type="time" name="stop" required style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>
+                        <td><input type="time" name="start"  style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>
+                        <td><input type="time" name="stop"  style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"> </td>
 <!--                        <td><input type="time" name="pause" style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;"></td>-->
-                        <td><select name="projekt"  required style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;-webkit-appearance: none;">
+                        <td><select name="projekt"   style="border: unset; background-color: unset; font-family: 'Century Gothic'; color: #404545;-webkit-appearance: none;">
                                 <?php
                                 $commsel = "SELECT * FROM `projekt`WHERE projekt.archiviert = 'FALSE'";
                                 $query = $mysqli->query($commsel);
@@ -97,11 +97,12 @@ require_once "../system/timecontrol.php";
                                 ?>
                             </select>
                         </td>
-                        <td><input type="text" name="beschreibung" placeholder="Beschreibung" required style="border: unset; background-color: unset; font-family: 'Century Gothic' font-size: 13px; color: #404545;"></td>
+                        <td><input type="text" name="beschreibung" placeholder="Beschreibung"  style="border: unset; background-color: unset; font-family: 'Century Gothic' font-size: 13px; color: #404545;"></td>
                     </tr>
                 </table>
                 </br>
                 <button class="buttoncontetn" type="submit" name="save" value="save">Save</button>
+                <button class="buttoncontetn" type="submit" name="schule" value="schule">Schule</button>
             </form>
             <div>
                 <form method="post"> </br> </br>

@@ -71,7 +71,7 @@ if(isset($_SESSION['user'])) {
     ///----- Variablen -----///
     if($_POST['save'] == 'save')
     {
-        $kalenderwoche = $_POST['kalenderwoche'];
+//        $kalenderwoche = $_POST['kalenderwoche'];
         $datum = $_POST['datum'];
         $start = $_POST['start'];
         $stop = $_POST['stop'];
@@ -90,8 +90,16 @@ if(isset($_SESSION['user'])) {
             echo('Fehler'. $mysqli->error);
         }
     }
+
 }
 else
 {
     header('Location: ../pages/page_login.php');
+}
+
+if ($_POST['schule'] == 'schule'){
+    $datum = $_POST['datum'];
+    $userid = $_SESSION['userId'];
+
+    $mysqli->query("INSERT INTO zeit (userId, projektId, datum, start, stop, beschreibung) VALUES ( $userId , 22 ,'$datum','07:30:00','16:00:00','BMS')");
 }

@@ -25,9 +25,7 @@ $woche = array('', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'S
 
     $monat = $_POST['monat'];
     $name = $_SESSION['vorname'];
-
-
-$jahr = 2019;
+    $jahr = 2019;
 $datum = '2019-'.$monat.'-01';
 $row = 9;
 $savedata = 'g';
